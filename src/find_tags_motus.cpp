@@ -215,6 +215,47 @@ void * tabfun[] = { (void *) &Tag_Database::getTagForMotusID };
 
 namespace po = boost::program_options;
 
+// Debugging/logging initialization function
+namespace logging = boost::log;
+void debug_init(int debug)
+{
+  if (debug == 1) {
+    logging::core::get()->set_filter
+    (
+        logging::trivial::severity >= logging::trivial::fatal
+    );
+  }
+  if (debug == 2) {
+    logging::core::get()->set_filter
+    (
+        logging::trivial::severity >= logging::trivial::error
+    );
+  }
+  if (debug == 3) {
+    logging::core::get()->set_filter
+    (
+        logging::trivial::severity >= logging::trivial::warning
+    );
+  }
+  if (debug == 4) {
+    logging::core::get()->set_filter
+    (
+        logging::trivial::severity >= logging::trivial::info
+    );
+  }
+  if (debug == 5) {
+    logging::core::get()->set_filter
+    (
+        logging::trivial::severity >= logging::trivial::debug
+    );
+  }
+  if (debug == 6) {
+    logging::core::get()->set_filter
+    (
+        logging::trivial::severity >= logging::trivial::trace
+    );
+  }
+}
 int
 main (int argc, char **argv) {
 
@@ -242,6 +283,7 @@ main (int argc, char **argv) {
   std::string tag_database;
   bool use_events;
   int bootnum;
+  int debug;
   bool resume;
 
   // output-related params
@@ -352,7 +394,7 @@ main (int argc, char **argv) {
      "   SIG:    signal strength in Lotek receiver units\n"
      "   GAIN:   receiver gain setting, in Lotek receiver units\n"
      "   CODESET: 'Lotek3' or 'Lotek4'\n\n"
-     "Each input record is used to generate a sequence of pulse records in SG format,"
+     "Each input record is used to generate a sequence of pulse records in SG format, "
      "and the program re-finds tags from these."
      )
     ("tag_database", po::value< std::string > (&tag_database),
@@ -362,13 +404,13 @@ main (int argc, char **argv) {
     ("use_events,e", po::value<bool>(& use_events)->implicit_value(true)->default_value(false),
      "Limit the search for specific tags to periods of time when they are known to be "
      "active.  These periods are specified by a table in the tag database called "
-     "'events', which must have at least the columns 'ts', 'motusTagID', and 'event',"
-     "where 'ts' (double) is the timestamp for event, in seconds since 1 Jan 1970 GMT;"
+     "'events', which must have at least the columns 'ts', 'motusTagID', and 'event', "
+     "where 'ts' (double) is the timestamp for event, in seconds since 1 Jan 1970 GMT; "
      "'tagID' (int) is the motus tagID; and 'event'(int) is 1 for activation, "
      "0 for deactivation.\n"
      "In almost all cases, you want this option, as it lets the tag finder search "
      "for a changing set of tags over the time period it processes.\n"
-     "Note: If this option is *not* specified, then all tags in the database are sought"
+     "Note: If this option is *not* specified, then all tags in the database are sought "
      "and their detections reported over the entire timespan of the input file."
      )
     ("bootnum,n", po::value<int>(& bootnum)->default_value(1),
@@ -427,7 +469,7 @@ main (int argc, char **argv) {
 
     ("max_pulse_rate,R", po::value<float>(&max_pulse_rate)->default_value(0),
      "maximum pulse rate (pulses per second) during pulse rate time window."
-     "Used to prevent exorbitant memory usage and execution time when noise-"
+     "Used to prevent exorbitant memory usage and execution time when noise- "
      "or bug-induced pulse bursts are present.  Pulses from periods of length "
      "PULSERATEWIN (specified by --pulse_rate_window) where "
      "the pulse rate exceeds MAXPULSERATE are simply discarded.\n"
@@ -447,9 +489,9 @@ main (int argc, char **argv) {
      )
 
     ("pulses_to_confirm,c", po::value<int>(&pulses_to_confirm)->default_value(PULSES_PER_BURST),
-     "how many pulses must be detected before a hit is confirmed.  For more"
-     "stringent filtering when BSLOP is large, CONFIRM should be set to 2 *"
-     "PULSES_PER_BURST or larger, so that more gaps must match those"
+     "how many pulses must be detected before a hit is confirmed.  For more "
+     "stringent filtering when BSLOP is large, CONFIRM should be set to 2 * "
+     "PULSES_PER_BURST or larger, so that more gaps must match those "
      "registered for a given tag before a hit is output."
      )
     ("sig_slop,l", po::value<float>(&sig_slop_dB)->default_value(10), "tag signal strength slop, "
@@ -461,9 +503,19 @@ main (int argc, char **argv) {
      )
     ("max_skipped_bursts,S", po::value<int>(&max_skipped_bursts)->default_value(60),
      "maximum number of consecutive bursts that can be missing (skipped) "
-     "without terminating a run.  When using the pulses_to_confirm criterion"
+     "without terminating a run.  When using the pulses_to_confirm criterion "
      "that number of pulses must occur with no gaps larger than `max_skipped_bursts` "
      "bursts between them."
+     )
+    ("debug,d", po::value<int>(& debug)->default_value(1),
+     "get debugging output on how the program is progressing\n"
+     "a higher value gets more debugging output\n"
+     "1 = fatal messages\n"
+     "2 = error messages\n"
+     "3 = warning messages\n"
+     "4 = info messages\n"
+     "5 = debug messages\n"
+     "6 = trace messages\n"
      )
 
     // additional params
@@ -497,7 +549,9 @@ main (int argc, char **argv) {
   po::notify(vm);
 
   std::map<std::string, std::string> external_param_map; // to store any external parameters for recording
-
+  // Initialize debugging/logging
+  debug_init(debug);
+  
   for (auto ep = external_param.begin(); ep != external_param.end(); ++ep) {
     const char *arg = ep->c_str();
     const char *delim = strchr(arg, '=');
@@ -657,6 +711,7 @@ main (int argc, char **argv) {
       dbf.add_param("resume", resume);
       dbf.add_param("lotek", lotek);
       dbf.add_param("timestamp_wonkiness", timestamp_wonkiness);
+
       for (auto ii=external_param_map.begin(); ii != external_param_map.end(); ++ii)
         dbf.add_param(ii->first.c_str(), ii->second.c_str());
 

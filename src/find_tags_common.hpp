@@ -1,5 +1,6 @@
 #ifndef FIND_TAGS_COMMON_HPP
 #define FIND_TAGS_COMMON_HPP
+#define BOOST_LOG_DYN_LINK 1
 
 #include <set>
 #include <unordered_set>
@@ -9,6 +10,9 @@
 #include <cmath>
 #include <boost/archive/binary_iarchive.hpp>
 #include <boost/archive/binary_oarchive.hpp>
+#include <boost/log/core.hpp>
+#include <boost/log/trivial.hpp>
+#include <boost/log/expressions.hpp>
 
 const static unsigned int PULSES_PER_BURST = 4;	// pulses in a burst (Lotek VHF tags)
 const static unsigned int MAX_LINE_SIZE = 512;	// characters in a .CSV file line
