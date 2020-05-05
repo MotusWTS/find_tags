@@ -81,13 +81,16 @@ Tag_Foray::set_timestamp_wonkiness(unsigned int w) {
 
 void
 Tag_Foray::start() {
+  BOOST_LOG_TRIVIAL(info) << "Starting a tag foray";
   Tag_Candidate::ending_batch = false;
 
   cr = new Clock_Repair(data, &line_no, Tag_Candidate::filer);
   SG_Record r;
 
-  if (! cr->get(r))
+  if (! cr->get(r)) {
+    BOOST_LOG_TRIVIAL(info) << "No records - nothing to do";
     return;  // no records, so nothing to do
+  }
 
   // the record returned by cr has a valid timestamp (the whole point of Clock_Repair)
   // so we can prune events corresponding to a tag having been activated and then died
@@ -113,12 +116,15 @@ Tag_Foray::start() {
     // skip record if it includes a time reversal of more than 10 seconds
     // (small time reversals are perfectly valid, and typically due to interleaved data
     // coming from different radios)
-    if (r.ts - ts < -10.0)
+    if (r.ts - ts < -10.0) {
+      BOOST_LOG_TRIVIAL(info) << "Record being skipped because of a time reversal of more than 10 seconds";
       continue;
+    }
 
     ts = r.ts;
     switch (r.type) {
     case SG_Record::GPS:
+      BOOST_LOG_TRIVIAL(trace) << "Got SG_Record-GPS";
       // GPS is not stuck, or Clock_Repair would have dropped the record
       // but only add it if r.v.lat and r.v.lon are actual numbers; r.v.alt might not be reported
       if (! (std::isnan(r.v.lat) || std::isnan(r.v.lon)))
@@ -126,7 +132,7 @@ Tag_Foray::start() {
       break;
 
     case SG_Record::PARAM:
-
+      BOOST_LOG_TRIVIAL(info) << "Got SG_Record-PARAM";
       Tag_Candidate::filer->add_recv_param( r.ts, r.port, r.v.param_flag, r.v.param_value, r.v.return_code, r.v.error);
 
       if (strcmp("-m", r.v.param_flag) || r.v.return_code || std::isnan(r.v.param_value)) {
@@ -142,7 +148,7 @@ Tag_Foray::start() {
     case SG_Record::PULSE:
       {
         // bump up the pulse count for the current hour bin
-
+        BOOST_LOG_TRIVIAL(trace) << "Got SG_Record-PULSE";
         double hourBin = round(r.ts / 3600);
         if (hourBin != prevHourBin) {
           if (prevHourBin > 0) {
@@ -160,8 +166,10 @@ Tag_Foray::start() {
           ++pulse_count[r.port + NUM_SPECIAL_PORTS];
 
         // skip this record if its offset frequency is out of bounds
-        if (r.v.dfreq > max_dfreq || r.v.dfreq < min_dfreq)
+        if (r.v.dfreq > max_dfreq || r.v.dfreq < min_dfreq) {
+          BOOST_LOG_TRIVIAL(trace) << "Skipping record because offset frequency is out of bounds";
           continue;
+        }
 
         Tag_Finder_Key key;
 
@@ -177,6 +185,7 @@ Tag_Foray::start() {
 
           // if there isn't already an appropriate Tag_Finder, create it
           if (! tag_finders.count(key)) {
+            BOOST_LOG_TRIVIAL(info) << "Creating new Tag_Finder";
             Tag_Finder *newtf;
             std::ostringstream prefix;
             prefix << r.port << ",";
@@ -244,6 +253,7 @@ Tag_Foray::start() {
 
 void
 Tag_Foray::process_event(Event e) {
+  BOOST_LOG_TRIVIAL(info) << "Processing event";
   auto t = e.tag;
   auto fs = Freq_Setting::as_Nominal_Frequency_kHz(t->freq);
   Graph * g = graphs[fs];
@@ -303,7 +313,7 @@ Tag_Foray::process_event(Event e) {
 void
 Tag_Foray::test() {
   // try build tag finders for each nominal frequency
-
+  BOOST_LOG_TRIVIAL(info) << "Tag_Foray test function";
   Freq_Set fs = tags->get_nominal_freqs();
   for (Freq_Set :: iterator it = fs.begin(); it != fs.end(); ++it) {
     Tag_Finder_Key key(0, *it);

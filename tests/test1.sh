@@ -9,7 +9,7 @@
 SQL=sqlite3
 RCVDB=test1/test1.sqlite
 FINDTAGS="valgrind --track-origins=yes ../src/find_tags_motus"
-OPTIONS="--pulses_to_confirm=8 --frequency_slop=0.5 --min_dfreq=0 --max_dfreq=12 --pulse_slop=1.5 --burst_slop=4 --burst_slop_expansion=1 --use_events --max_skipped_bursts=20 --default_freq=166.376 --bootnum=176  --src_sqlite $RCVDB"
+OPTIONS="--debug=5 --pulses_to_confirm=8 --frequency_slop=0.5 --min_dfreq=0 --max_dfreq=12 --pulse_slop=1.5 --burst_slop=4 --burst_slop_expansion=1 --use_events --max_skipped_bursts=20 --default_freq=166.376 --bootnum=176  --src_sqlite 1 $RCVDB"
 ##OUTPUT=">/dev/null 2>&1"
 
 tar -xjvf test1.tar.bz2

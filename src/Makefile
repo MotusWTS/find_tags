@@ -14,7 +14,7 @@ CXX=g++
 ## PRODUCTION FLAGS:
 CPPFLAGS=-Wall -Wno-sign-compare -g -O3 -std=c++11 $(PROFILING) -DPROGRAM_VERSION=$(PROGRAM_VERSION) -DPROGRAM_BUILD_TS=$(PROGRAM_BUILD_TS) -I/usr/local/include/boost_1.60
 
-LDFLAGS=-ldl -lrt -lboost_serialization -lboost_program_options -lboost_log -lboost_system -lsqlite3
+LDFLAGS=-pthread -ldl -lrt -lboost_serialization -lboost_program_options -lboost_log -lboost_system -lsqlite3
 PROGRAM_VERSION=\""$(shell git describe)\""
 PROGRAM_BUILD_TS=$(shell date +%s)
 
