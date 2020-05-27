@@ -11,9 +11,13 @@ if [ $local_machine != "sgdata.motus.org" ]; then
 fi
 
 # Next, get any command line options
-while getopts ":ht" opt; do
+while getopts ":htd" opt; do
   case ${opt} in
     h ) # process option a
+      ;;
+    d )
+      rm testdb.sqlite
+      sqlite3 testdb.sqlite <makeDB.sql
       ;;
     t ) # process option t
       ;;

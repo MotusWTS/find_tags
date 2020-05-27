@@ -15,23 +15,31 @@
 -- CREATE DATABASE motus;
 -- USE motus;
 
+--CREATE TABLE timeFixes (
+--monoBN  integer,       -- boot session during which fixes were made
+--tsLow double,          -- low endpoint of timestamps before correction
+--tsHigh double,         -- high endpoint of timestamps before correction
+--fixedBy double,        -- amount which was added to uncorrected timestamps to obtain corrected ones, in seconds.
+--error double,          -- upper bound on magnitude of error of timestamps, after correction
+--comment text           -- method and reason for fixing; e.g. 'M' for monotonic clock fix; 'S' for setting clock from GPS      );
+
 CREATE TABLE IF NOT EXISTS batches (
     batchID INTEGER NOT NULL PRIMARY KEY,                -- unique identifier for this batch
-    motusDeviceID INTEGER NOT NULL,                      -- motus ID of device this batch of data came from
+    motusDeviceID INTEGER ,                      -- motus ID of device this batch of data came from
                                                          -- foreign key to Motus DB table.
     monoBN INT,                                          -- boot number for this receiver (NULL
                                                          -- okay, e.g. Lotek)
-    tsStart FLOAT(53) NOT NULL,                          -- timestamp for start of period
+    tsStart FLOAT(53) ,                          -- timestamp for start of period
                                                          -- covered by batch
-    tsEnd FLOAT(53) NOT NULL,                            -- timestamp for end of period
+    tsEnd FLOAT(53) ,                            -- timestamp for end of period
                                                          -- covered by batch
-    numHits BIGINT NOT NULL,                             -- count of hits in this batch
-    ts FLOAT(53) NOT NULL,                               -- timestamp this batch record added
-    status TINYINT NOT NULL DEFAULT -10,                 -- state:  -10 = in preparation; -1 = done but for testing only; 1 = done and valid
+    numHits BIGINT ,                             -- count of hits in this batch
+    ts FLOAT(53) ,                               -- timestamp this batch record added
+    status TINYINT DEFAULT -10,                 -- state:  -10 = in preparation; -1 = done but for testing only; 1 = done and valid
     motusUserID INT,                                     -- user who uploaded the data leading to this batch
     motusProjectID INT,                                  -- user-selected motus project ID for this batch
     motusJobID INT,                                      -- processing job which created this batch
-    recvDepProjectID INT NOT NULL DEFAULT -1             -- projectID of the receiver deployment this batch belongs to (-1 if not known).
+    recvDepProjectID INT DEFAULT -1             -- projectID of the receiver deployment this batch belongs to (-1 if not known).
                                                          -- this field allows much simpler queries for fetching data
 );--
 
@@ -296,3 +304,35 @@ CREATE TABLE IF NOT EXISTS reprocessBatches (
    PRIMARY KEY(reprocessID, batchID)                               -- a batch occurs at most once per reprocessing event
 );--
 
+CREATE TABLE batchState (
+-- This table records the state of a program used when it last finished running; this
+-- can be used to resume it when new data arrive.
+    batchID INT NOT NULL references batches,      -- ID of batch which was being processed when program paused
+    progName VARCHAR(16) NOT NULL,                -- identifier of program; e.g. 'find_tags',
+                                                  -- 'lotek-plugins.so'
+    monoBN INT NOT NULL,                          -- montonic boot count of last batch
+    tsData FLOAT(53),                             -- timestamp (seconds since unix epoch) of last processed line in previous input
+    tsRun FLOAT(53),                              -- timestamp (seconds since unix epoch) when program was paused
+    state  BLOB,                                  -- serialized state of program, if needed
+    version INT,                                  -- serialization version (MAJOR << 16 | MINOR)
+    PRIMARY KEY (monoBN, progName)                -- only one saved state per program per boot session
+);
+
+CREATE TABLE timeFixes (
+monoBN  integer,       -- boot session during which fixes were made
+tsLow double,          -- low endpoint of timestamps before correction
+tsHigh double,         -- high endpoint of timestamps before correction
+fixedBy double,        -- amount which was added to uncorrected timestamps to obtain corrected ones, in seconds.
+error double,          -- upper bound on magnitude of error of timestamps, after correction
+comment text           -- method and reason for fixing; e.g. 'M' for monotonic clock fix; 'S' for setting clock from GPS      
+);
+
+CREATE TABLE params (
+batchID INTEGER,      -- batchID this setting is from
+ts      FLOAT(53),    -- timestamp for this record
+ant     INTEGER,      -- hub port for which device setting applies
+param   VARCHAR,      -- parameter name
+val     FLOAT(53),    -- parameter setting
+error   INTEGER,      -- 0 if parameter setting succeeded; error code otherwise
+errinfo VARCHAR       -- non-empty if error code non-zero
+);
