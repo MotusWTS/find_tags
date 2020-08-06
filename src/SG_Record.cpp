@@ -28,8 +28,16 @@ SG_Record::from_buf(char * buf) {
        G,1458001712,44.34021,-66.118733333,21.6
        ts        lat        lon        alt
     */
-    if (buf[1] != '\0' && 4 == sscanf(buf+2, "%lf,%lf,%lf,%lf", &ts, &v.lat, &v.lon, &v.alt)) {
-      type = GPS;
+    if (buf[1] != '\0') {
+      int matchCount = sscanf(buf+2, "%lf,%lf,%lf,%lf", &ts, &v.lat, &v.lon, &v.alt);
+      if(matchCount == 4) {
+        type = GPS;
+      } else if(matchCount == 3) {
+        // G,1458001712,44.34021,-66.11873,undefined
+        // G,1458001712,44.34021,-66.11873,null
+        v.alt = 0; // Would an obviously wrong value cause issues, e.g. -10000?
+        type = GPS;
+      }
     }
     break;
 
