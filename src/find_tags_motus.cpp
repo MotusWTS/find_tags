@@ -180,6 +180,7 @@ All output from a run of this program forms a new batch.
    hits per second since the last confirmed hit.
 
 */
+#include "spdlog/spdlog.h"
 
 #include <iostream>
 #include <fstream>
@@ -217,7 +218,8 @@ namespace po = boost::program_options;
 
 int
 main (int argc, char **argv) {
-
+  spdlog::set_pattern("[%Y-%m-%d %H:%M:%S] [%^%l%$] [process %P] %v");
+  spdlog::info("Welcome to spdlog!");
   // frequency-related params
 
   Frequency_MHz default_freq;
