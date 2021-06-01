@@ -181,6 +181,7 @@ All output from a run of this program forms a new batch.
 
 */
 #include "spdlog/spdlog.h"
+#include "spdlog/sinks/basic_file_sink.h"
 
 #include <iostream>
 #include <fstream>
@@ -221,15 +222,16 @@ main (int argc, char **argv) {
   // Setting up logging
   try 
     {
-      auto logger = spdlog::basic_logger_mt("basic_logger", "logs/basic-log.txt");
+      auto logger = spdlog::basic_logger_mt("basic_logger", "/sgm_local/logs/find_tags.log");
+      logger->set_level(spdlog::level::debug); // Set global log level to debug
+      logger->set_pattern("[%Y-%m-%d %H:%M:%S] [%^%l%$] [process %P] %v");
     }
   catch (const spdlog::spdlog_ex &ex)
     {
       std::cout << "Log init failed: " << ex.what() << std::endl;
     }
-  spdlog::set_level(spdlog::level::debug); // Set global log level to debug
-  spdlog::set_pattern("[%Y-%m-%d %H:%M:%S] [%^%l%$] [process %P] %v");
-  spdlog::info("Start of a run");
+  spdlog::get("basic_logger")->info("Start of a run");
+
   // frequency-related params
 
   Frequency_MHz default_freq;
@@ -621,19 +623,23 @@ main (int argc, char **argv) {
       } else {
         pulses = Data_Source::make_SG_source(optind < argc ? argv[optind++] : "");
       }
-
+      spdlog::get("basic_logger")->info("tag_db setup");
+      
       Tag_Foray foray;
 
       if (resume) {
         resume = Tag_Foray::resume(foray, pulses, bootnum);
         if (! resume) {
           std::cerr << "find_tags_motus: --resume failed" << std::endl;
+	  spdlog::get("basic_logger")->debug("find_tags_motus: --resume failed");
         } else {
           std::cerr << "resumed successfully" << std::endl;
+	  spdlog::get("basic_logger")->debug("resumed successfully");
           tag_db = foray.tags;
           // Freq_Setting needs to know the set of nominal frequencies
           Freq_Setting::set_nominal_freqs(tag_db->get_nominal_freqs());
         }
+	spdlog::get("basic_logger")->info("This is a resume run");
       }
       if (! resume) {
         // either not asked to resume, or resume failed (e.g. no resume state saved)
@@ -692,11 +698,14 @@ main (int argc, char **argv) {
       }
       foray.start();
       std::cerr << "Max num candidates: " << Tag_Candidate::get_max_num_cands() << " at " << std::setprecision(14) << Tag_Candidate::get_max_cand_time() << "; now (" << foray.last_seen() << "): " << Tag_Candidate::get_num_cands() << std::endl;
+      spdlog::get("basic_logger")->info("Max num candidates: {0} at {1}; now ({2}):", Tag_Candidate::get_max_num_cands(), Tag_Candidate::get_max_cand_time(), foray.last_seen(), Tag_Candidate::get_num_cands());
       foray.pause();
     }
     catch (std::runtime_error& e) {
       std::cerr << e.what() << std::endl;
+      spdlog::get("basic_logger")->info("Catch block in main: {0}",e.what());
       exit(2);
     }
     std::cout << "Done." << std::endl;
+    spdlog::get("basic_logger")->info("Done");
 }
