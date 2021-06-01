@@ -218,8 +218,18 @@ namespace po = boost::program_options;
 
 int
 main (int argc, char **argv) {
+  // Setting up logging
+  try 
+    {
+      auto logger = spdlog::basic_logger_mt("basic_logger", "logs/basic-log.txt");
+    }
+  catch (const spdlog::spdlog_ex &ex)
+    {
+      std::cout << "Log init failed: " << ex.what() << std::endl;
+    }
+  spdlog::set_level(spdlog::level::debug); // Set global log level to debug
   spdlog::set_pattern("[%Y-%m-%d %H:%M:%S] [%^%l%$] [process %P] %v");
-  spdlog::info("Welcome to spdlog!");
+  spdlog::info("Start of a run");
   // frequency-related params
 
   Frequency_MHz default_freq;
