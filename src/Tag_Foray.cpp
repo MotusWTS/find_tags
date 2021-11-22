@@ -1,3 +1,6 @@
+#include "spdlog/spdlog.h"
+#include "spdlog/sinks/basic_file_sink.h"
+
 #include "Tag_Foray.hpp"
 #include "SG_Record.hpp"
 
@@ -219,6 +222,7 @@ Tag_Foray::start() {
 #ifdef DEBUG2
           std::cerr << p.ts << ": Key: " << r.port << ", " << port_freq[r.port].f_kHz << std::endl;
 #endif
+	  spdlog::get("basic_logger")->debug("{0}: Key: {1}, {2}", p.ts, r.port, port_freq[r.port].f_kHz);
           tag_finders[key]->process(p);
 #ifdef DEBUG3
           tag_finders[key]->dump(r.ts);
@@ -270,6 +274,7 @@ Tag_Foray::process_event(Event e) {
 #ifdef DEBUG2
       std::cerr << "Activating " << t->motusID << "=" << (void *) t << std::endl;
 #endif
+      spdlog::get("basic_logger")->debug("Activating {0} = {1}", t->motusID, (void *) t);
     }
     break;
   case Event::E_DEACTIVATE:
@@ -293,6 +298,7 @@ Tag_Foray::process_event(Event e) {
 #ifdef DEBUG2
       std::cerr << "Deactivating " << t->motusID << "=" << (void *) t << std::endl;
 #endif
+      spdlog::get("basic_logger")->debug("Deactivating {0} = {1}", t->motusID, (void *) t);
     }
     break;
   default:

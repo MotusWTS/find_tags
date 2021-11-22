@@ -385,7 +385,7 @@ main (int argc, char **argv) {
      "the current invocation run will be associated with the specified bootnum "
      "in the output database."
      )
-    ("log_level,l", po::value<int>(& log_level)->default_value(0),
+    ("log_level,l", po::value<int>(& log_level)->default_value(3),
      "The log level sets how much detail gets written out "
      "   CRITICAL   0 "
      "   ERROR      1 "
@@ -393,7 +393,7 @@ main (int argc, char **argv) {
      "   INFO       3 "
      "   DEBUG      4 "
      "   TRACE      5 "
-     "The default setting is 0 - CRTITICAL output"
+     "The default setting is 3 - INFO output"
      )
     ("resume,r", po::value<bool>(& resume)->implicit_value(true)->default_value(false),
      " Attempt to resume tag finding where it left off for this boot session.  This means:\n"
@@ -713,7 +713,7 @@ main (int argc, char **argv) {
 #ifdef DEBUG
       std::cerr << "after resuming, nextID is " << Ambiguity::nextID << std::endl;
 #endif
-
+      spdlog::get("basic_logger")->debug("after resuming, nextID is {0}", Ambiguity::nextID);
       if (graph_only) {
         foray.graph();
         exit(0);

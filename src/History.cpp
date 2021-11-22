@@ -1,3 +1,6 @@
+#include "spdlog/spdlog.h"
+#include "spdlog/sinks/basic_file_sink.h"
+
 #include "History.hpp"
 #include "Ticker.hpp"
 #include <set>
@@ -84,6 +87,8 @@ History::prune_deceased(Timestamp ts) {
 #ifdef DEBUG
   std::cerr << "Dropping " << q.size() - q2.size() << " irrelevant events before " << ts << std::endl;
 #endif
+  spdlog::get("basic_logger")->debug("Dropping {0} irrelevant events before {1}", q.size() - q2.size(), ts);
+
   q.clear();
 
   for(auto p = q2.rbegin(); p != q2.rend(); ++p)

@@ -1,3 +1,6 @@
+#include "spdlog/spdlog.h"
+#include "spdlog/sinks/basic_file_sink.h"
+
 #include "Ambiguity.hpp"
 #include "Tag.hpp"
 #include "Tag_Candidate.hpp"
@@ -140,6 +143,7 @@ Ambiguity::setNextProxyID(Motus_Tag_ID proxyID) {
 #ifdef DEBUG
   std::cerr << "setting nextID to " << proxyID << "; original value was " << nextID;
 #endif
+  spdlog::get("basic_logger")->debug("setting nextID to {0}; original value was {1}", proxyID, nextID);
   nextID = proxyID;
 };
 

@@ -1,3 +1,6 @@
+#include "spdlog/spdlog.h"
+#include "spdlog/sinks/basic_file_sink.h"
+
 #include "Tag_Finder.hpp"
 
 Tag_Finder::Tag_Finder (Tag_Foray * owner, Nominal_Frequency_kHz nom_freq, TagSet *tags, Graph * g, string prefix) :
@@ -51,6 +54,7 @@ Tag_Finder::process(Pulse &p) {
   std::cerr << std::setprecision(14);
   std::cerr << "Pulse " << p.ts << std::endl;
 #endif
+  spdlog::get("basic_logger")->debug("Pulse {0}", p.ts);
 
   for (int i = 0; i < NUM_CAND_LISTS; ++i) {
 
@@ -60,6 +64,8 @@ Tag_Finder::process(Pulse &p) {
     bool dbg = true;
     dbg && std::cerr << "=== cand list " << i << " ===\n";
 #endif
+    spdlog::get("basic_logger")->debug("=== cand list {0} ===", i);
+
 
     Cand_List::iterator nextci; // "next" iterator in case we need to delete current one while traversing list
 
@@ -70,6 +76,7 @@ Tag_Finder::process(Pulse &p) {
 #ifdef DEBUG2
       dbg && std::cerr << "Examining " << (void * ) (ci->second) << " last_ts " << (ci->second->last_ts) << std::endl;
 #endif
+      spdlog::get("basic_logger")->debug("Examining {0} last_ts {1}", (void *) (ci->second), (ci->second->last_ts));
       // check whether candidate has expired
       if (ci->second->expired(p.ts)) {
         auto tc = ci->second;
@@ -77,6 +84,7 @@ Tag_Finder::process(Pulse &p) {
 #ifdef DEBUG2
         dbg && std::cerr << "Deleting " << (void *) tc << " last_ts " << (tc->last_ts)<< std::endl;
 #endif
+	spdlog::get("basic_logger")->debug("Deleting {0} last_ts {1}", (void *) tc, (tc->last_ts));
         delete tc;
         continue;
       }
@@ -94,6 +102,7 @@ Tag_Finder::process(Pulse &p) {
 #ifdef DEBUG2
       dbg && std::cerr << "Cloned " << (void *) (ci->second) << " last_ts " << (ci->second->last_ts) << " as " << (void *) clone << std::endl;
 #endif
+      spdlog::get("basic_logger")->debug("Cloned {0} last_ts {1} as {2}", (void *) (ci->second), (ci->second->last_ts), (void *) clone);
       // NB: DANGEROUS ASSUMPTION!!  Because we've already computed
       // the next value for ci as nextci, inserting the clone (which
       // has the same key as ci does before it accepts the pulse) into

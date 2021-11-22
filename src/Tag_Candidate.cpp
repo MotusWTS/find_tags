@@ -1,3 +1,6 @@
+#include "spdlog/spdlog.h"
+#include "spdlog/sinks/basic_file_sink.h"
+
 #include "Tag_Candidate.hpp"
 
 #include "Tag_Foray.hpp"
@@ -91,6 +94,7 @@ Tag_Candidate::expired(Timestamp ts) {
 #ifdef DEBUG
     std::cerr << "whoops - checking for expiry of Tag Candidate with NULL state!" << std::endl;
 #endif
+    spdlog::get("basic_logger")->debug("whoops - checking for expiry of TagCandidate with NULL state!");
     return true;
   }
   bool rv = ts - last_ts > state->get_max_age();
