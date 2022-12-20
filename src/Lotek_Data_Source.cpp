@@ -1,3 +1,6 @@
+#include "spdlog/spdlog.h"
+#include "spdlog/sinks/basic_file_sink.h"
+
 #include "Lotek_Data_Source.hpp"
 #include <sstream>
 #include <cstdio>
@@ -57,6 +60,7 @@ Lotek_Data_Source::getline(char * buf, int maxLen) {
 #ifdef DEBUG
       std::cerr << i->second << std::endl;
 #endif
+      spdlog::get("basic_logger")->debug("{0}", i->second);
       sgbuf.erase(i);
       return true;
     }

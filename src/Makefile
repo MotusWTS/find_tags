@@ -12,7 +12,7 @@ CXX=g++
 ## to find_tags_motus (do find_tags_motus --help after this rebuild to see details)
 
 ## PRODUCTION FLAGS:
-CPPFLAGS=-Wall -Wno-sign-compare -g -O3 -std=c++11 $(PROFILING) -DPROGRAM_VERSION=$(PROGRAM_VERSION) -DPROGRAM_BUILD_TS=$(PROGRAM_BUILD_TS) -I/usr/local/include/boost_1.60
+CPPFLAGS=-Wall -Wno-sign-compare -g -O3 -std=c++11 $(PROFILING) -DPROGRAM_VERSION=$(PROGRAM_VERSION) -DPROGRAM_BUILD_TS=$(PROGRAM_BUILD_TS) -I/usr/local/include/boost_1.60 -I.
 
 LDFLAGS=-ldl -lrt -lboost_serialization -lboost_program_options -lsqlite3
 PROGRAM_VERSION=\""$(shell git describe)\""
