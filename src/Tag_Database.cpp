@@ -73,9 +73,9 @@ Tag_Database::populate_from_sqlite_file(string filename, bool get_history) {
     double gap = sqlite3_column_double(st, 6) - totalBurst;
     gaps.push_back(gap);
 
-    // extract codeset; "Lotek3"->3, "Lotek4"->4, otherwise 0
+    // extract codeset; "Lotek3"->3, "Lotek4"->4, "Lotek6M"->6
     short codeSet = 0;
-    if (sqlite3_column_bytes(st, 8) == 6)
+    if (sqlite3_column_bytes(st, 8) >= 6)
       codeSet = sqlite3_column_text(st, 8)[5] - '0';
     short id = sqlite3_column_int(st, 7);
 
