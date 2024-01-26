@@ -16,8 +16,8 @@ while getopts ":htd" opt; do
     h ) # process option a
       ;;
     d )
-      rm testdb.sqlite
-      sqlite3 testdb.sqlite <makeDB.sql
+      rm tagdb.sqlite
+      sqlite3 tagdb.sqlite <tagDB.sql
       ;;
     t ) # process option t
       ;;
